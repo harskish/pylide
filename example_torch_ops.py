@@ -1,11 +1,11 @@
 import sys, os, shutil
 from pathlib import Path
 import platform
-from halide_ops.create_wheel import make_editable_install
-make_editable_install(None)
+from create_wheel import make_editable_install
+make_editable_install()
 import halide as hl
 
-from halide_ops.halide_pt_op import hl_torch_op
+from halide_pt_op import hl_torch_op
 from scipy import signal
 from PIL import Image
 import numpy as np
@@ -13,7 +13,7 @@ import torch
 import time
 from typing import Callable
 from utilities import get_default_device
-from halide_ops.python_ops import run_CPU, run_GPU
+from python_ops import run_CPU, run_GPU
 
 def benchmark(func: Callable = None, len_s=5):
     # Initial JIT compile

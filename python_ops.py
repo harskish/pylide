@@ -4,8 +4,8 @@
 from os import makedirs
 import numpy as np
 from PIL import Image
-from halide_ops.create_wheel import make_editable_install
-make_editable_install(llvm_ver=19)
+from create_wheel import make_editable_install
+make_editable_install()
 import halide as hl
 from halide.halide_ import HalideError
 import time

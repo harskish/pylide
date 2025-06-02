@@ -1,22 +1,22 @@
-from halide_ops.create_wheel import make_editable_install
-make_editable_install(llvm_ver=19)
+from create_wheel import make_editable_install
+make_editable_install()
 import halide as hl
 import torch
 import numpy as np
 from shutil import rmtree
 from pathlib import Path
 
-from halide_ops import halide_pt_op as hlpt
+import halide_pt_op as hlpt
 from utilities import get_default_device, get_dataset_dir, random_seed
-from repos.anyres_gan.training.dataset import ImageFolderDataset
-import siv
+#from repos.anyres_gan.training.dataset import ImageFolderDataset
+#import siv
 
 from torch_utils.ops import upfirdn2d
-from halide_ops.torch_ops import benchmark
+from torch_ops import benchmark
 import time
 from tqdm import trange
 
-from halide_ops.halide_pt_op import BUILD_TOP_DIR
+from halide_pt_op import BUILD_TOP_DIR
 
 @hlpt.hl_torch_op
 def noop(input, target: hl.Target):

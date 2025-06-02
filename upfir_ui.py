@@ -1,20 +1,18 @@
+import torch
+import torchvision
+from create_wheel import make_editable_install; make_editable_install() # alternatively: python create_wheel.py && pip install ...
+from utilities import get_default_device
+from torch_utils.ops import upfirdn2d
+import halide_pt_op
+
 from pyviewer.toolbar_viewer import AutoUIViewer
 from pyviewer.params import *
 from pyviewer.utils import reshape_grid
-import torch
-from halide_ops.create_wheel import make_editable_install
-make_editable_install(llvm_ver=19)
-from utilities import get_default_device, get_dataset_dir
-from repos.anyres_gan.training.dataset import ImageFolderDataset
-from torch_utils.ops import upfirdn2d
-from halide_ops import halide_pt_op
-from shutil import rmtree
 
 dev = get_default_device()
 res = 256
-dset = ImageFolderDataset(f'{get_dataset_dir()}/random', crop_image=True, resolution=res)
-img_np = dset._load_raw_image(0, resize=True)[None] / 255.0
-img = torch.tensor(img_np, dtype=torch.float32, device=dev).contiguous()
+img_uint8 = torchvision.io.read_image('statues.jpeg').to(dev)
+img = img_uint8.div(255.0).unsqueeze(0).contiguous() # float32 in [0, 1]
 N, C, H, W = img.shape
 assert H >= 16 and W >= 16 and C == 3, 'Invalid image dims'
 
@@ -29,8 +27,8 @@ class State(ParamContainer):
     show_hl: Param = BoolParam('Show HL', True)
     clip: Param = BoolParam('Clip', True)
     flip: Param = BoolParam('Flip filter', False)
-    padx: Param = Int2Param('Pad x', (100, 100), -100, 100)
-    pady: Param = Int2Param('Pad y', (100, 100), -100, 100)
+    padx: Param = Int2Param('Pad x', (0, 0), -100, 100)
+    pady: Param = Int2Param('Pad y', (0, 0), -100, 100)
     
 class Viewer(AutoUIViewer):
     def setup_state(self):
@@ -70,7 +68,7 @@ class Viewer(AutoUIViewer):
         kwargs = dict(up=up, down=down, padding=(*padx, *pady), flip_filter=flip, gain=float(gain))
         imgs = []
         if show_hl:
-            from halide_ops.upfir import _upfir_hl_buggy, get_output_shape
+            from upfir import _upfir_hl_buggy, get_output_shape
             imgs.append(upfirdn2d.upfirdn2d(*args, **kwargs, impl='halide'))
             #out = torch.zeros(*img.shape, device=dev, dtype=torch.float32)
             #pad_t = torch.tensor([pady[0]], device=dev, dtype=torch.int32)
@@ -87,7 +85,6 @@ class Viewer(AutoUIViewer):
         else:
             self.rel_diff = None
             return None
-
 
 if __name__ == '__main__':
     viewer = Viewer('AutoUI example')

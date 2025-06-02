@@ -1,9 +1,9 @@
 from pathlib import Path
-from halide_ops.create_wheel import make_editable_install; make_editable_install(19)
+from create_wheel import make_editable_install; make_editable_install()
 import halide as hl
 from utilities import hl_init_autosched; hl_init_autosched()
 import numpy as np
-from halide_ops import halide_pt_op as hlpt
+import halide_pt_op as hlpt
 
 # l0, sz0, ..., ln, szn
 # def rdom(*args) -> hl.RDom:
@@ -108,7 +108,7 @@ def _upfir_hl_op(
         # out.set_estimates([(0, int(sx*input.get().width())), (0, int(sy*input.get().height())), (0, input.get().channels()), (0, B)])
         # f.set_estimates([(0, f.get().width())] if separable else [(0, f.get().width()), (0, f.get().height())])
         
-        # # Params: lib\halide_ops\Halide\src\autoschedulers\anderson2021\AutoSchedule.cpp
+        # # Params: Halide\src\autoschedulers\anderson2021\AutoSchedule.cpp
         # out = hl.Pipeline(out)
         # asp = hl.AutoschedulerParams('Anderson2021', {
         #     'parallelism': 16,
@@ -138,7 +138,7 @@ def _upfir_hl_op(
         out.set_estimates([(0, int(sx*input.get().width())), (0, int(sy*input.get().height())), (0, input.get().channels()), (0, B)])
         f.set_estimates([(0, f.get().width())] if separable else [(0, f.get().width()), (0, f.get().height())])
 
-        # Params: lib\halide_ops\Halide\src\autoschedulers\adams2019\AutoSchedule.cpp
+        # Params: Halide\src\autoschedulers\adams2019\AutoSchedule.cpp
         out = hl.Pipeline(out)
         asp = hl.AutoschedulerParams('Adams2019', {
             'parallelism': 16,
@@ -180,8 +180,8 @@ def _upfir_hl_buggy(
 
 if __name__ == '__main__':
     from PIL import Image
-    from halide_ops.halide_pt_op import _make_hl_imageparam, _make_hl_buffer, _make_hl_scalar
-    from halide_ops.python_ops import find_gpu_target
+    from halide_pt_op import _make_hl_imageparam, _make_hl_buffer, _make_hl_scalar
+    from python_ops import find_gpu_target
 
     W, H, C = (256, 128, 4)
     dtype = 'float32'

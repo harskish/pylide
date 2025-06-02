@@ -1,4 +1,4 @@
-import halide as hl
+import halide as hl # type: ignore
 import shutil
 import os
 import sys
@@ -17,7 +17,7 @@ from contextlib import redirect_stdout, redirect_stderr
 from collections import defaultdict
 from setuptools import setup
 from torch.utils.cpp_extension import BuildExtension
-from halide_ops import custom_ops_hl
+import custom_ops_hl
 
 VERBOSITY = 'brief' # 'brief', 'none'
 

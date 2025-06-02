@@ -1,0 +1,22 @@
+name: pylide
+channels:
+  - defaults
+dependencies:
+  - python=3.12
+  - cmake=3.31
+  - ninja=1.12.1
+  - pip
+  - pip:
+    - numpy==1.26.4
+    - diskcache==5.6.3
+    - cachetools==5.5.0
+    - requests # dnnlib
+    - wheel
+    - pywin32; sys_platform == "win32"
+    - pyviewer==2.0.2
+    - --extra-index-url https://download.pytorch.org/whl/cu126
+    - torch==2.6.0
+    - torchvision==0.21.0
+
+# conda env create -f environment.yml
+# conda env update -f environment.yml

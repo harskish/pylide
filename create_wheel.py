@@ -6,27 +6,21 @@ from zipfile import ZipFile, ZIP_STORED
 from pathlib import Path
 from textwrap import dedent
 from shutil import copy2, rmtree, which
+from wheel.vendored.packaging import tags # pip install wheel
 import hashlib
 import subprocess
 import sys
 import re
 
-HALIDE_ROOTS = {
-    15: Path(__file__).parent / 'Halide_llvm15',
-    19: Path(__file__).parent / 'Halide_llvm19',
-}
-HALIDE_DIRS = {
-    15: Path('~/halide-install_llvm15').expanduser(),
-    19: Path('~/halide-install_llvm19').expanduser(),
-}
+HALIDE_ROOT = Path(__file__).parent / 'Halide'
+HALIDE_DIR = Path('~/halide-install').expanduser()
 
 # Tag if available, else hash
-def get_halide_ver(llvm_ver):
-    return subprocess.check_output(['git', 'describe', '--always'], cwd=HALIDE_ROOTS[llvm_ver]).decode('utf-8').strip()
+def get_halide_ver():
+    return subprocess.check_output(['git', 'describe', '--always'], cwd=HALIDE_ROOT).decode('utf-8').strip()
 
 # Copy halide files (for wheel or local editable install)
-def _copy_files(write: callable, llvm_ver):
-    HALIDE_DIR = HALIDE_DIRS[llvm_ver]
+def _copy_files(write: callable):
     indir = Path(HALIDE_DIR)
     libdir = Path(HALIDE_DIR) / 'lib/python3/site-packages/halide'
 
@@ -49,7 +43,7 @@ def _copy_files(write: callable, llvm_ver):
         # dylibs are next to .so in wheel
         for p in sobs:
             curr = subprocess.check_output(['otool', '-l', p]).decode('utf-8')
-            if not re.search('^\s*path @loader_path/ \(offset \d+\)$', curr, re.MULTILINE):
+            if not re.search(r'^\s*path @loader_path/ \(offset \d+\)$', curr, re.MULTILINE):
                 os.system(f'install_name_tool -add_rpath @loader_path/ {p}') # won't duplicate
         
         # TODO: handle symlinks
@@ -61,6 +55,10 @@ def _copy_files(write: callable, llvm_ver):
 
         for p in sobs:
             os.system(f"patchelf --set-rpath '$ORIGIN/' {p}") # works even if no rpath is set
+    
+    if system() == 'Windows':
+        # dumpbin /imports, dumpbin /dependents
+        pass
 
     # Make unique
     names = []
@@ -69,6 +67,12 @@ def _copy_files(write: callable, llvm_ver):
         if p.name not in names:
             names.append(p.name)
             paths.append(p)
+
+    # Check that libs for correct Python version have been compiled
+    suffix = sorted(tags.EXTENSION_SUFFIXES, key=lambda v: len(v))[-1] # longest
+    lib_name = f'halide_{suffix}' # halide_.cpython-310
+    if lib_name not in names:
+        raise RuntimeError(f'Halide not compiled for current Python version ({lib_name}), see SETUP.txt')
 
     for f in paths:
         write(f)
@@ -81,16 +85,11 @@ def _copy_files(write: callable, llvm_ver):
     write(libdir / '_generator_helpers.py')
     write(libdir / 'imageio.py')
 
-def make_wheel(llvm_ver):
+def make_wheel():
     assert list(HALIDE_DIR.glob('*')), f'Could not find Halide install at {HALIDE_DIR}'
-    HALIDE_DIR = HALIDE_DIRS[llvm_ver]
-    halide_ver = get_halide_ver(llvm_ver)
+    halide_ver = get_halide_ver()
     pkg_name = f'halide-{halide_ver}'
-    pkg_tag = {
-        'Darwin': 'cp310-cp310-macosx_12_0_arm64',
-        'Windows': 'cp310-cp310-win_amd64',
-        'Linux': 'cp310-cp310-manylinux1_x86_64',
-    }[system()]
+    pkg_tag = str(next(tags.sys_tags())) # most specific, e.g. 'cp312-cp312-win_amd64'
     outfile = Path(f'{pkg_name}-{pkg_tag}.whl').resolve()
     
     whl = ZipFile(outfile, 'w', compression=ZIP_STORED)
@@ -144,17 +143,13 @@ def make_wheel(llvm_ver):
 
     print(f'\nInstall with:\npip install --upgrade --force-reinstall {outfile.as_posix()}')
 
-HL_INSTALLED_VER = None
-def make_editable_install(llvm_ver, root=Path('~'), add_path=True):
-    global HL_INSTALLED_VER
-    if HL_INSTALLED_VER:
-        assert HL_INSTALLED_VER == llvm_ver or llvm_ver is None, 'Cannot install multiple versions'
+HL_INSTALLED = False
+def make_editable_install(root=Path('~'), add_path=True):
+    global HL_INSTALLED
+    if HL_INSTALLED or 'halide' in sys.modules:
         return
     
-    assert llvm_ver is not None, 'Must specify llvm_ver on first call'
-    HALIDE_DIR = HALIDE_DIRS[llvm_ver]
     assert list(HALIDE_DIR.glob('*')), f'Could not find Halide install at {HALIDE_DIR}'
-    assert llvm_ver in [15, 19]
 
     dir = root.expanduser().resolve() / 'hl_dev_install'
     if dir.is_dir():
@@ -162,10 +157,10 @@ def make_editable_install(llvm_ver, root=Path('~'), add_path=True):
 
     # Copy runtime header files directly (see: Halide/src/runtime/CMakeLists.txt)
     # => can skip time-consuming dummy compile step
-    cmakelist_src = (HALIDE_ROOTS[llvm_ver] / 'src/runtime/CMakeLists.txt').read_text()
-    RUNTIME_HEADER_FILES = dedent(re.findall('set\(RUNTIME_HEADER_FILES\n([\s\S]*?)\)', cmakelist_src)[0]).splitlines()
+    cmakelist_src = (HALIDE_ROOT / 'src/runtime/CMakeLists.txt').read_text()
+    RUNTIME_HEADER_FILES = dedent(re.findall(r'set\(RUNTIME_HEADER_FILES\n([\s\S]*?)\)', cmakelist_src)[0]).splitlines()
     for h in RUNTIME_HEADER_FILES:
-        copy2(HALIDE_ROOTS[llvm_ver] / f'src/runtime/{h}', HALIDE_DIR / f'include/{h}')
+        copy2(HALIDE_ROOT / f'src/runtime/{h}', HALIDE_DIR / f'include/{h}')
 
     def write_fun(infile: Path, name=None):
         outname = name or infile.name
@@ -173,12 +168,12 @@ def make_editable_install(llvm_ver, root=Path('~'), add_path=True):
         os.makedirs(outpath.parent, exist_ok=True)
         copy2(infile, outpath)
         #print('Added', outname)
-    _copy_files(write_fun, llvm_ver)
+    _copy_files(write_fun)
     
     if add_path:
         sys.path.insert(0, dir.as_posix())
-
-    HL_INSTALLED_VER = llvm_ver
+    
+    HL_INSTALLED = True
 
 if __name__ == '__main__':
     make_wheel()

@@ -3,18 +3,18 @@ import numpy as np
 from shutil import rmtree
 from pathlib import Path
 
-from halide_ops.create_wheel import make_editable_install
-make_editable_install(llvm_ver=19)
+from create_wheel import make_editable_install
+make_editable_install()
 import halide as hl # type: ignore
 
-from halide_ops import halide_pt_op as hlpt
+import halide_pt_op as hlpt
 from utilities import get_default_device, get_dataset_dir, random_seed
 from repos.anyres_gan.training.dataset import ImageFolderDataset
 
 from torch_utils.ops import upfirdn2d
-from halide_ops.torch_ops import benchmark
-from halide_ops import halide_pt_op
-from halide_ops import custom_ops_hl
+from torch_ops import benchmark
+import halide_pt_op
+import custom_ops_hl
 custom_ops_hl.VERBOSITY = halide_pt_op.VERBOSITY = 'none'
 
 print('Deleting cached pipelines and torch ops')
