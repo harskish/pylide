@@ -1,0 +1,1 @@
+./bin/Release/bench.exe input=random:0:[1024,1024,3,1] f=constant:0.04:[63,63] padx0=0 padx1=0 pady0=0 pady1=0 gain=1.0 result=upfirry.png --output_extents=[1024,1024,3,1] --benchmarks=all --benchmark_min_time=1 --parsable_output

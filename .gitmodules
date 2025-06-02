@@ -1,0 +1,4 @@
+[submodule "Halide"]
+	path = Halide
+	url = git@github.com:harskish/Halide.git
+	branch = mps

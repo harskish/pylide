@@ -1,0 +1,3 @@
+.cache
+*.whl
+halide_develop_install/*
