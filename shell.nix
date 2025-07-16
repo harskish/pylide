@@ -73,5 +73,6 @@ in with pkgs; pkgs.mkShell {
   
   postShellHook = ''
     export LD_LIBRARY_PATH=${lib.makeLibraryPath [stdenv.cc.cc]}
+    export HALIDE_INCLUDE_DIR=${customHalide.outPath}/include
   '';
 }

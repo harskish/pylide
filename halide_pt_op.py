@@ -112,14 +112,31 @@ def compile_pipeline_process_func(
     verbosity: str,
 ):
     """Compile pipeline in separate process to ensure deterministic stmt generation (and thus caching)"""
-    from utilities import hl_init_autosched
-    hl_init_autosched()
-    
     import marshal
     import pickle
     import types
-    func = types.FunctionType(marshal.loads(marshaled_bytecode), globals(), pickle.loads(pickled_name), pickle.loads(pickled_arguments), pickle.loads(pickled_closure))
     
+    func: hl.Func = types.FunctionType(marshal.loads(marshaled_bytecode), globals(), pickle.loads(pickled_name), pickle.loads(pickled_arguments), pickle.loads(pickled_closure))
+    outdir = compile_pipeline(func, name, device, def_args, arg_names, in_args, kwargs, debug, fname, verbosity)
+    ret_queue.put(outdir)
+    
+    return outdir
+
+def compile_pipeline(
+    func: hl.Func,
+    name: str,
+    device: str, # cuda/mps/cpu etc.
+    def_args: list,
+    arg_names: list[str],
+    in_args: list,
+    kwargs: dict,
+    debug: bool,
+    fname: str,
+    verbosity: str,
+):  
+    from utilities import hl_init_autosched
+    hl_init_autosched()
+
     if verbosity != 'none':
         print(f'Creating PT op "{name}" for {device}')
     
@@ -170,10 +187,10 @@ def compile_pipeline_process_func(
     # GPU: must define schedule
     if target.has_gpu_feature():
         assert 'gpu_thread' in loop_nest, 'Must specify shedule when running on GPU'
+        #print('Skipping GPU schedule check')
 
     # Build pipeline and Torch extension
     outdir = build_pipeline(f, inputs, target, fname, verbosity)
-    ret_queue.put(outdir)
 
     return outdir
 
@@ -377,6 +394,7 @@ def _get_compile_params(input_path: Path, has_cuda: bool, has_mps: bool):
     # Path to a distribution of Halide
     dirs_to_try = [
         Path(hl.__file__).parent / 'include',
+        Path(os.environ.get('HALIDE_INCLUDE_DIR', '<missing>')), # from shell.nix
     ]
     
     halide_incls = list(p for p in dirs_to_try if p.is_dir())

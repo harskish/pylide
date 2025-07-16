@@ -148,8 +148,11 @@ def make_editable_install(root=Path('~'), add_path=True):
     global HL_INSTALLED
     if HL_INSTALLED or 'halide' in sys.modules:
         return
-    
-    assert list(HALIDE_DIR.glob('*')), f'Could not find Halide install at {HALIDE_DIR}'
+
+    if not list(HALIDE_DIR.glob('*')):
+        print(f'Could not find Halide install at {HALIDE_DIR}, trying normal import')
+        import halide as hl
+        return
 
     dir = root.expanduser().resolve() / 'hl_dev_install'
     if dir.is_dir():

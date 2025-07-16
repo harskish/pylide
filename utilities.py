@@ -47,4 +47,10 @@ def hl_init_autosched():
     for plugin in ['li2018', 'mullapudi2016', 'adams2019', 'anderson2021']:
         suff = 'dll' if system() == 'Windows' else 'so'
         pref = '' if system() == 'Windows' else 'lib'
-        hl.load_plugin(str(Path(hl.__file__).parent / f'{pref}autoschedule_{plugin}.{suff}'))
+        hlroot = Path(hl.__file__).parent
+        lib_manual = hlroot / f'{pref}autoschedule_{plugin}.{suff}'
+        lib_nix = hlroot.parents[2] / f'{pref}autoschedule_{plugin}.{suff}'
+        if lib_nix.is_file():
+            hl.load_plugin(str(lib_nix))
+        else:
+            hl.load_plugin(str(lib_manual))
