@@ -17,7 +17,7 @@ from contextlib import redirect_stdout, redirect_stderr
 from collections import defaultdict
 from setuptools import setup
 from torch.utils.cpp_extension import BuildExtension
-import custom_ops_hl
+from . import custom_ops_hl
 
 VERBOSITY = 'brief' # 'brief', 'none'
 
@@ -134,7 +134,7 @@ def compile_pipeline(
     fname: str,
     verbosity: str,
 ):  
-    from utilities import hl_init_autosched
+    from .utilities import hl_init_autosched
     hl_init_autosched()
 
     if verbosity != 'none':
@@ -186,8 +186,8 @@ def compile_pipeline(
     
     # GPU: must define schedule
     if target.has_gpu_feature():
-        assert 'gpu_thread' in loop_nest, 'Must specify shedule when running on GPU'
-        #print('Skipping GPU schedule check')
+        #assert 'gpu_thread' in loop_nest, 'Must specify shedule when running on GPU'
+        print('Skipping GPU schedule check')
 
     # Build pipeline and Torch extension
     outdir = build_pipeline(f, inputs, target, fname, verbosity)

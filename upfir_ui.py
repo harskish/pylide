@@ -1,9 +1,9 @@
 import torch
 import torchvision
-from create_wheel import make_editable_install; make_editable_install() # alternatively: python create_wheel.py && pip install ...
-from utilities import get_default_device
-from torch_utils.ops import upfirdn2d
-import halide_pt_op
+from pylide.create_wheel import make_editable_install; make_editable_install() # alternatively: python create_wheel.py && pip install ...
+from pylide.utilities import get_default_device
+from pylide.torch_utils.ops import upfirdn2d
+from pylide import halide_pt_op
 
 from pyviewer.toolbar_viewer import AutoUIViewer
 from pyviewer.params import *
@@ -68,7 +68,7 @@ class Viewer(AutoUIViewer):
         kwargs = dict(up=up, down=down, padding=(*padx, *pady), flip_filter=flip, gain=float(gain))
         imgs = []
         if show_hl:
-            from upfir import _upfir_hl_buggy, get_output_shape
+            from pylide.upfir import _upfir_hl_buggy, get_output_shape
             imgs.append(upfirdn2d.upfirdn2d(*args, **kwargs, impl='halide'))
             #out = torch.zeros(*img.shape, device=dev, dtype=torch.float32)
             #pad_t = torch.tensor([pady[0]], device=dev, dtype=torch.int32)

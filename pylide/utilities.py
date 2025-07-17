@@ -6,7 +6,7 @@ import os
 import time
 import numpy as np
 import random
-import dnnlib
+from . import dnnlib
 from typing import Mapping
 
 def get_default_device():

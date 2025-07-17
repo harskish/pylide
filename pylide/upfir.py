@@ -1,9 +1,9 @@
 from pathlib import Path
-from create_wheel import make_editable_install; make_editable_install()
+from .create_wheel import make_editable_install; make_editable_install()
 import halide as hl
-from utilities import hl_init_autosched; hl_init_autosched()
+from .utilities import hl_init_autosched; hl_init_autosched()
 import numpy as np
-import halide_pt_op as hlpt
+from . import halide_pt_op as hlpt
 
 # l0, sz0, ..., ln, szn
 # def rdom(*args) -> hl.RDom:

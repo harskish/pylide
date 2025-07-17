@@ -284,7 +284,7 @@ def _upfirdn2d_cuda(up=1, down=1, padding=0, pad_mode='constant', flip_filter=Fa
 #----------------------------------------------------------------------------
 
 def _upfirdn2d_halide(x, f, up=1, down=1, padding=0, pad_mode='constant', flip_filter=False, gain=1):
-    from upfir import _upfir_hl_op, get_output_shape # Not yet available on cluster
+    from pylide.upfir import _upfir_hl_op, get_output_shape # Not yet available on cluster
     padding = _parse_padding(padding)
     up = _parse_scaling(up)
     down = _parse_scaling(down)

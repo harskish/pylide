@@ -5,7 +5,7 @@ from create_wheel import make_editable_install
 make_editable_install()
 import halide as hl
 
-from halide_pt_op import hl_torch_op
+from pylide.halide_pt_op import hl_torch_op
 from scipy import signal
 from PIL import Image
 import numpy as np
