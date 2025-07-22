@@ -35,7 +35,7 @@ Simply run `nix-shell`
 ## Python and LLVM setup
 ### 1. Setup Python environment
 ```bash
-conda activate pylide
+conda activate pylide  # replace with target env, bindings will be version specific (e.g. 3.12)
 conda install cmake=3.31 ninja=1.12.1
 ```
 
@@ -131,9 +131,9 @@ cd Halide
 > **Note:** On Windows, run within x64 native tools command prompt
 
 ```bash
-conda activate pylide && bash -c "cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_PYTHON_BINDINGS=ON -DLLVM_DIR=$LLVM_ROOT/lib/cmake/llvm -S . -B ~/halide_build"
+conda activate <python_env> && bash -c "rm -rf ~/halide_build && cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_PYTHON_BINDINGS=ON -DLLVM_DIR=$LLVM_ROOT/lib/cmake/llvm -S . -B ~/halide_build"
 ```
-The target python version (e.g. 3.12) is deduced from the active conda env - change as necessary!
+The target python version (e.g. 3.12) is deduced from the active conda env (stored in ~/halide_build/CMakeCache.txt)
 
 ### 3. Setup Build Aliases
 
