@@ -133,12 +133,13 @@ cd Halide
 ```bash
 conda activate pylide && bash -c "cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_PYTHON_BINDINGS=ON -DLLVM_DIR=$LLVM_ROOT/lib/cmake/llvm -S . -B ~/halide_build"
 ```
+The target python version (e.g. 3.12) is deduced from the active conda env - change as necessary!
 
 ### 3. Setup Build Aliases
 
 **Windows** (`~/cmd_aliases/hlbuild.bat`):
 ```batch
-@conda activate pylide && bash -c "cmake --build ~/halide_build && cmake --install ~/halide_build --prefix ~/halide-install"
+@bash -c "cmake --build ~/halide_build && cmake --install ~/halide_build --prefix ~/halide-install"
 ```
 > Add `~/cmd_aliases` to PATH
 

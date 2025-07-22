@@ -1,3 +1,4 @@
+from pylide.create_wheel import make_editable_install; make_editable_install()
 import halide as hl # type: ignore
 import shutil
 import os

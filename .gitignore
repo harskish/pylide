@@ -3,3 +3,4 @@
 halide_develop_install/*
 **/__pycache__
 *.ini
+pylide.egg-info

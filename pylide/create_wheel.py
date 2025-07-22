@@ -12,7 +12,7 @@ import subprocess
 import sys
 import re
 
-HALIDE_ROOT = Path(__file__).parent / 'Halide'
+HALIDE_ROOT = Path(__file__).parent.parent / 'Halide'
 HALIDE_DIR = Path('~/halide-install').expanduser()
 
 # Tag if available, else hash
@@ -72,7 +72,7 @@ def _copy_files(write: callable):
     suffix = sorted(tags.EXTENSION_SUFFIXES, key=lambda v: len(v))[-1] # longest
     lib_name = f'halide_{suffix}' # halide_.cpython-310
     if lib_name not in names:
-        raise RuntimeError(f'Halide not compiled for current Python version ({lib_name}), see SETUP.txt')
+        raise RuntimeError(f'Halide not compiled for current Python version ({lib_name}), see SETUP.md')
 
     for f in paths:
         write(f)
