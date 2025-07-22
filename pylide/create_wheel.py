@@ -155,23 +155,29 @@ def make_editable_install(root=Path('~'), add_path=True):
         return
 
     dir = root.expanduser().resolve() / 'hl_dev_install'
-    if dir.is_dir():
-        rmtree(dir)
+    try:
+        if dir.is_dir():
+            dll = (dir / 'halide/Halide.dll')
+            if dll.is_file():
+                dll.unlink()
+            rmtree(dir)
+        
+        # Copy runtime header files directly (see: Halide/src/runtime/CMakeLists.txt)
+        # => can skip time-consuming dummy compile step
+        cmakelist_src = (HALIDE_ROOT / 'src/runtime/CMakeLists.txt').read_text()
+        RUNTIME_HEADER_FILES = dedent(re.findall(r'set\(RUNTIME_HEADER_FILES\n([\s\S]*?)\)', cmakelist_src)[0]).splitlines()
+        for h in RUNTIME_HEADER_FILES:
+            copy2(HALIDE_ROOT / f'src/runtime/{h}', HALIDE_DIR / f'include/{h}')
 
-    # Copy runtime header files directly (see: Halide/src/runtime/CMakeLists.txt)
-    # => can skip time-consuming dummy compile step
-    cmakelist_src = (HALIDE_ROOT / 'src/runtime/CMakeLists.txt').read_text()
-    RUNTIME_HEADER_FILES = dedent(re.findall(r'set\(RUNTIME_HEADER_FILES\n([\s\S]*?)\)', cmakelist_src)[0]).splitlines()
-    for h in RUNTIME_HEADER_FILES:
-        copy2(HALIDE_ROOT / f'src/runtime/{h}', HALIDE_DIR / f'include/{h}')
-
-    def write_fun(infile: Path, name=None):
-        outname = name or infile.name
-        outpath = dir / 'halide' / outname
-        os.makedirs(outpath.parent, exist_ok=True)
-        copy2(infile, outpath)
-        #print('Added', outname)
-    _copy_files(write_fun)
+        def write_fun(infile: Path, name=None):
+            outname = name or infile.name
+            outpath = dir / 'halide' / outname
+            os.makedirs(outpath.parent, exist_ok=True)
+            copy2(infile, outpath)
+            #print('Added', outname)
+        _copy_files(write_fun)
+    except:
+        pass # Windows: Halide.dll probably loaded in another process
     
     if add_path:
         sys.path.insert(0, dir.as_posix())
