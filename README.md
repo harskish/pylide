@@ -50,6 +50,8 @@ def my_convolution(
         asp = hl.AutoschedulerParams('Adams2019', { 'parallelism': 16 })
         out.apply_autoscheduler(target, asp)
         print(res.schedule_source)
+    
+    return out
 
 # Inputs are NCHW pytorch tensors
 input_nchw = torch.random.randn((1, 3, 512, 512), device='cuda')
@@ -61,5 +63,5 @@ filter = torch.random.randn((3, 3), device='cuda')
 # The Halide programming model requires the output shape to be explicitly provided
 # => this is done through an explicit output tensor
 output_nchw = torch.empty_like(input_nchw)
-my_convolution(input_nchw, filter, output=output_nchw)
+my_convolution(input_nchw, filter, out=output_nchw)
 ```

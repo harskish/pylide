@@ -131,7 +131,7 @@ cd Halide
 > **Note:** On Windows, run within x64 native tools command prompt
 
 ```bash
-conda activate <python_env> && bash -c "rm -rf ~/halide_build && cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_PYTHON_BINDINGS=ON -DLLVM_DIR=$LLVM_ROOT/lib/cmake/llvm -S . -B ~/halide_build"
+conda activate <python_env> && bash -c "rm -rf ~/halide_build/CMakeCache.txt && cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_PYTHON_BINDINGS=ON -DLLVM_DIR=$LLVM_ROOT/lib/cmake/llvm -S . -B ~/halide_build"
 ```
 The target python version (e.g. 3.12) is deduced from the active conda env (stored in ~/halide_build/CMakeCache.txt)
 
