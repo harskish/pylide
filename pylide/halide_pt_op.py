@@ -64,16 +64,25 @@ def _make_hl_buffer(t: torch.Tensor, reverse_axes=True):
     By default, hl.Buffer will alias the same memory.
     """
     _check_tensor(t)
-    type_mapping = {
-        np.dtype('float32'): hl.Float(32),
-        np.dtype('int32'): hl.Int(32),
-        np.dtype('uint8'): hl.UInt(8),
-    }
+    
+    # Convert dtype to Halide type dynamically
+    buff_np = t.detach().cpu().numpy() if torch.is_tensor(t) else t.copy()
+    np_dtype = buff_np.dtype
+    
+    if np_dtype.kind == 'f':
+        hl_type = hl.Float(np_dtype.itemsize * 8)
+    elif np_dtype.kind == 'u':
+        hl_type = hl.UInt(np_dtype.itemsize * 8)
+    elif np_dtype.kind == 'i':
+        hl_type = hl.Int(np_dtype.itemsize * 8)
+    elif np_dtype.kind == 'b':
+        hl_type = hl.UInt(8) # bool
+    else:
+        raise ValueError(f"Unsupported dtype: {np_dtype}")
 
     assert reverse_axes, 'copy_from below untested, probably broken'
-    buff_np = t.detach().cpu().numpy() if torch.is_tensor(t) else t.copy()
     sizes = t.shape[::-1] if reverse_axes else t.shape
-    buff = hl.Buffer(type=type_mapping[buff_np.dtype], sizes=sizes)
+    buff = hl.Buffer(type=hl_type, sizes=sizes)
     buff.copy_from(hl.Buffer(buff_np)) # copy of data with ownership
 
     # Test broken version
@@ -149,7 +158,14 @@ def compile_pipeline(
     inputs = []
     for k, v in zip(arg_names, in_args):
         if torch.is_tensor(v):
-            inputs.append(_make_hl_imageparam(v))
+            if v.ndim == 4:
+                inputs.append(_make_hl_imageparam(v)) # 4d tensors: input images with dynamic shapes
+            elif v.ndim == 2:
+                inputs.append(_make_hl_buffer(v)) # static shape
+            elif v.ndim == 1:
+                inputs.append(_make_hl_buffer(v)) # static shape
+            else:
+                raise RuntimeError(f'Invalid number of dimensions for "{k}"')
         elif isinstance(v, numbers.Number) and not isinstance(v, bool):
             inputs.append(_make_hl_scalar(v))
         else:
