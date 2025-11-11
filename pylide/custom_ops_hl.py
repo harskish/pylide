@@ -160,6 +160,7 @@ def get_plugin(
             if VERBOSITY != 'none':
                 print(f'using prebuilt ({prebuilt[0].suffix})... ',  end='')
             import sys; sys.path.append(str(cached_build_dir.resolve()))
+            module = importlib.import_module(module_name)
         else:
             # Don't wait silently for dangling lockfile
             lockfile = cached_build_dir / 'lock'
@@ -169,7 +170,7 @@ def get_plugin(
             
             # Compile.
             cached_sources = [cached_build_dir / fname.relative_to(common_prefix) for fname in sources]
-            torch.utils.cpp_extension.load(
+            module = torch.utils.cpp_extension.load(
                 name=module_name,
                 build_directory=str(cached_build_dir),
                 verbose=verbose_build,
@@ -180,9 +181,6 @@ def get_plugin(
 
             if has_to_wait:
                 print(f'Lockfile was released (tid={get_native_id()})')
-
-        # Load.
-        module = importlib.import_module(module_name)
 
     except:
         if VERBOSITY == 'brief':
