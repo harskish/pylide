@@ -2,7 +2,7 @@ numpy==2.2.3
 diskcache==5.6.3
 cachetools==5.5.0
 requests # dnnlib
-wheel
+wheel==0.43.0
 pywin32; sys_platform == "win32"
 pyviewer==2.0.2
 --extra-index-url https://download.pytorch.org/whl/cu124 torch==2.6.0

@@ -14,6 +14,9 @@ setup(name='pylide',
     author='Erik Härkönen',
     author_email='erik.harkonen@hotmail.com',
     url='https://github.com/harskish/pylide',
+    install_requires=[
+        'wheel==0.43.0'
+    ],
     # Single-file modules to install (excluding .py suffix)
     # Will become importable: `import <name>`
     py_modules=[],
@@ -22,4 +25,5 @@ setup(name='pylide',
     packages=[
         'pylide'
     ],
+    
 )
